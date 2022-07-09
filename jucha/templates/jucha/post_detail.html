@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{{post.title}}
+{% if user.is_superuser or user.is_staff %}
+<a class = "btn btn-info btn-sm float-right" href="">Delete</a>
+{% endif %}
+
+{% if user.is_authenticated and user == post.author %}
+<a class = "btn btn-info btn-sm float-right" href="update_post/{{post.pk}}">시간 수정</a>
+{% endif %}
+
+<!--댓글남기기-->
+{% if user.is_authenticated %}
+<form method="POST" action = "{{ post.get_absolute_url}}new_comment/">
+      {%csrf_token%}
+    <div class = "form-group">
+          {{comment_form}}
+      </div>
+        <button type="submit" class ="btn btn-primary">Submit</button>
+    </form>
+{%else%}
+<a role ="button" class = "btn btn-outline-dark btn-block btn-sm" href="#"
+   data-toggle="modal" data-target="#loginModal">Log in and leave a message</a>
+{% endif %}
+
+<!--댓글보기-->
+{% if post.comment_set.exists %}
+    {% for comment in post.comment_set.iterator %}
+    <div>
+        {{comment.author.username }}{{comment.content}}
+    </div>
+    <a role="button"
+                                   href="#"
+                                   id="comment-{{ comment.pk }}-delete-modal-btn"
+                                   class="btn btn-sm btn-danger"
+                                   data-toggle="modal" data-target="#deleteCommentModal-{{ comment.pk }}">
+                                    delete
+                                </a>
+
+<!-- Modal -->
+                            <div class="modal fade" id="deleteCommentModal-{{ comment.pk }}" tabindex="-1" role="dialog" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel">Are You Sure?</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <del>{{ comment | linebreaks }}</del>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            <a role="button" class="btn btn-danger" href="/blog/delete_comment/{{ comment.pk }}/">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+<hr>
+    {% endfor %}
+{% endif %}
+</body>
+</html>
